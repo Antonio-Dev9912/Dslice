@@ -1,5 +1,7 @@
 package df.R10omxalSU;
 
+import df.D10slice.R;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;

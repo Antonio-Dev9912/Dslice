@@ -15,7 +15,7 @@ val releaseSigningConfigured = listOf(
 ).all { !signingProps.getProperty(it).isNullOrBlank() }
 
 android {
-    namespace = "df.R10omxalSU"
+    namespace = "df.D10slice"
     compileSdk = 37
 
     buildFeatures {
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "df.R10omxalSU"
+        applicationId = "df.D10slice"
         minSdk = 32
         targetSdk = 37
         versionCode = 555
@@ -85,7 +85,7 @@ android {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set(output.versionName.map { vn -> "RomxalSU_${vn}.apk" })
+            output.outputFileName.set(output.versionName.map { vn -> "Dslice_${vn}.apk" })
         }
     }
 }
