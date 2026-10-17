@@ -1,17 +1,17 @@
-# RomxalSU [DirtyFrag (CVE-2026-43284)]
+# Dslice [DirtyFrag (CVE-2026-43284)]
 
 > [!WARNING]
 > **Important notice if you previously used other rooting tools:**
 > Leftover modules from any previous root methods can cause conflicts and crashes. 
 > 
-> **To ensure RomxalSU works correctly, you must clean your system first by following these steps:**
+> **To ensure Dslice works correctly, you must clean your system first by following these steps:**
 > 1. Delete and uninstall **all** previously installed root modules.
 > 2. Perform a **soft reboot**.
 > 3. Immediately perform a **full (hard) reboot** to completely clear the system environment.
 > 
-> Once your system is fully clean, you can safely run RomxalSU.
+> Once your system is fully clean, you can safely run Dslice.
 
-RomxalSU is an Android rooting tool that exploits CVE-2026-43284 (DirtyFrag) — a kernel page cache write primitive — to load a custom kernel module without requiring an unlocked bootloader. It is intentionally designed to be SU Manager agnostic and works with any KernelSU-compatible SU manager.
+Dslice is an Android rooting tool that exploits CVE-2026-43284 (DirtyFrag) — a kernel page cache write primitive — to load a custom kernel module without requiring an unlocked bootloader. It is intentionally designed to be SU Manager agnostic and works with any KernelSU-compatible SU manager.
 
 > [!IMPORTANT]
 > Before hitting that fork button, consider making a pull request instead :)
@@ -33,7 +33,7 @@ RomxalSU is an Android rooting tool that exploits CVE-2026-43284 (DirtyFrag) —
 > [!WARNING]
 > Use at your own risk. I am not responsible for any damage to your device.
 
-1. Install [RomxalSU](https://github.com/k10halifa/Dslice/releases/tag/v5.5.3)
+1. Install [Dslice](https://github.com/k10halifa/Dslice/releases/tag/v5.5.3)
 2. Install a compatible SU Manager:
    - **Samsung Devices:**
      - [KernelSU (Samsung)](https://github.com/diabl0w/KernelSU) *(Recommended)*
@@ -64,19 +64,19 @@ A: Sorry, there is no fix. Either:
 <details>
 <summary><b>Q: Log says "SUCCESS" or "ksud exited with error", but I don't have root</b></summary>
 
-A: First, try disabling **"Auto Soft Reboot"** in RomxalSU settings if you have it enabled; otherwise, refer to [Discussions #69](https://github.com/diabl0w/DFRoot/discussions/69).
+A: First, try disabling **"Auto Soft Reboot"** in Dslice settings if you have it enabled; otherwise, refer to [Discussions #69](https://github.com/diabl0w/DFRoot/discussions/69).
 </details>
 
 <details>
 <summary><b>Q: I installed a module and now I can't launch root without crashing</b></summary>
 
-A: Toggle **"Disable KSU Modules"** in RomxalSU settings.
+A: Toggle **"Disable KSU Modules"** in Dslice settings.
 </details>
 
 <details>
 <summary><b>Q: I installed a module and have "Start at Boot" enabled and now I am bootlooping</b></summary>
 
-A: Typically Android will detect bootloops and boot into Safe Mode. Otherwise, hold the Volume Down button during boot to enter safe mode. From there, disable **"Start on Boot"** and enable **"Disable KSU Modules"** in RomxalSU settings, or uninstall RomxalSU until stabilized.
+A: Typically Android will detect bootloops and boot into Safe Mode. Otherwise, hold the Volume Down button during boot to enter safe mode. From there, disable **"Start on Boot"** and enable **"Disable KSU Modules"** in Dslice settings, or uninstall Dslice until stabilized.
 </details>
 
 ---
