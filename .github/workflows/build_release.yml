@@ -110,14 +110,14 @@ jobs:
         if: steps.signing.outputs.configured == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: Dslice-Release-APK-signed
-          path: app/build/outputs/apk/release/Dslice_*.apk
+          name: RomxalSU-Release-APK-signed
+          path: app/build/outputs/apk/release/RomxalSU_*.apk
           if-no-files-found: error
 
       - name: Upload unsigned Release APK
         if: steps.signing.outputs.configured == 'false'
         uses: actions/upload-artifact@v7
         with:
-          name: Dslice-Release-APK-unsigned
-          path: app/build/outputs/apk/release/Dslice_*.apk
+          name: RomxalSU-Release-APK-unsigned
+          path: app/build/outputs/apk/release/RomxalSU_*.apk
           if-no-files-found: error

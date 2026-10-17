@@ -103,7 +103,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Build Dslice APK
+      - name: Build RomxalSU APK
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             ./gradlew :app:assembleDebug
@@ -111,32 +111,32 @@ jobs:
             ./gradlew :app:assembleRelease
           fi
 
-      - name: Upload Dslice debug APK
+      - name: Upload RomxalSU debug APK
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v7
         with:
-          name: Dslice-Debug-APK
-          path: app/build/outputs/apk/debug/Dslice_*.apk
+          name: RomxalSU-Debug-APK
+          path: app/build/outputs/apk/debug/RomxalSU_*.apk
           if-no-files-found: error
 
-      - name: Upload signed Dslice release APK
+      - name: Upload signed RomxalSU release APK
         if: github.event_name != 'pull_request' && steps.signing.outputs.configured == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: Dslice-Release-APK-signed
-          path: app/build/outputs/apk/release/Dslice_*.apk
+          name: RomxalSU-Release-APK-signed
+          path: app/build/outputs/apk/release/RomxalSU_*.apk
           if-no-files-found: error
 
-      - name: Upload unsigned Dslice release APK
+      - name: Upload unsigned RomxalSU release APK
         if: github.event_name != 'pull_request' && steps.signing.outputs.configured == 'false'
         uses: actions/upload-artifact@v7
         with:
-          name: Dslice-Release-APK-unsigned
-          path: app/build/outputs/apk/release/Dslice_*.apk
+          name: RomxalSU-Release-APK-unsigned
+          path: app/build/outputs/apk/release/RomxalSU_*.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/release/Dslice_*.apk
+          files: app/build/outputs/apk/release/RomxalSU_*.apk
