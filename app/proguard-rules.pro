@@ -1,1 +1,1 @@
--keep class df.D10slice.IReporter { *; }
+-keep class df.R10omxalSU.IReporter { *; }

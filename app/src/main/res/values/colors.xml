@@ -7,4 +7,5 @@
     <color name="app_icon_background">#2F4577</color>
     <color name="launcher_icon_background">#FFFFFF</color>
     <color name="launcher_icon_foreground">#121212</color>
+    <color name="launcher_background">#FFF8F0</color>
 </resources>
