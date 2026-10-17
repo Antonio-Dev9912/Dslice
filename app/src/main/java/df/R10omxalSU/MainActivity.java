@@ -1,4 +1,4 @@
-package df.D10slice;
+package df.R10omxalSU;
 
 import android.app.Activity;
 import android.content.ComponentName;
