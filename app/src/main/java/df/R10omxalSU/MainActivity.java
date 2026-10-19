@@ -37,7 +37,6 @@ public class MainActivity extends Activity implements IReporter {
 
     private static final String TAG = "dfroot";
 
-    private MaterialCardView launchRootCard;
     private View rootLayout;
     private LinearLayout suManagerRow;
     private TextView suManagerSubtitle;
@@ -76,7 +75,6 @@ public class MainActivity extends Activity implements IReporter {
         setContentView(R.layout.activity_main);
 
         rootLayout = findViewById(R.id.rootLayout);
-        launchRootCard = findViewById(R.id.launchRootCard);
         suManagerRow = findViewById(R.id.suManagerRow);
         suManagerSubtitle = findViewById(R.id.suManagerSubtitle);
         switchSuManager = findViewById(R.id.switchSuManager);
@@ -122,7 +120,6 @@ public class MainActivity extends Activity implements IReporter {
 
         updateRunButton();
 
-        launchRootCard.setOnClickListener(v -> launchRoot());
         launchRootSwitchListener = (button, checked) -> {
             if (checked) {
                 if (isRootActive()) {
