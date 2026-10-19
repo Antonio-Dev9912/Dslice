@@ -361,10 +361,10 @@ public class MainActivity extends Activity implements IReporter {
     private void runExploit() {
         try {
             int rc = ExploitRunner.run(mDeCtx, this);
-            String msg = rc == 0 ? "DFRoot: SUCCESS"
-                       : rc == 1 ? "DFRoot: Error - ksud nonzero exit"
-                       : rc == 2 ? "DFRoot: Error - check logcat & dmesg"
-                       : "DFRoot: Error - failed to patch files";
+            String msg = rc == 0 ? "Dslice: SUCCESS"
+                       : rc == 1 ? "Dslice: Error - ksud nonzero exit"
+                       : rc == 2 ? "Dslice: Error - check logcat & dmesg"
+                       : "Dslice: Error - failed to patch files";
             mMain.post(() -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show());
         } catch (Exception e) {
             Log.e(TAG, "exploit exception", e);
