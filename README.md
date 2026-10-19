@@ -33,7 +33,7 @@ RomxalSU is an Android rooting tool that exploits CVE-2026-43284 (DirtyFrag) —
 > [!WARNING]
 > Use at your own risk. I am not responsible for any damage to your device.
 
-1. Install [RomxalSU](https://github.com/k10halifa/Dslice/releases/tag/v.6.0)
+1. Install [RomxalSU](https://github.com/k10halifa/Dslice/releases/tag/v.6.1)
 2. Install a compatible SU Manager:
    - **Samsung Devices:**
      - [KernelSU (Samsung)](https://github.com/diabl0w/KernelSU) *(Recommended)*
