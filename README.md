@@ -1,4 +1,6 @@
-# Dslice [DirtyFrag (CVE-2026-43284)]
+# RomxalSU [DirtyFrag (CVE-2026-43284)]
+
+> **Original Project:** Based on [DFRoot by diabl0w](https://github.com/diabl0w/DFRoot)
 
 > [!WARNING]
 > **Important notice if you previously used other rooting tools:**
