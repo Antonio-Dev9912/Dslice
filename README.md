@@ -1,4 +1,4 @@
-# RomxalSU [DirtyFrag (CVE-2026-43284)]
+# Dslice [DirtyFrag (CVE-2026-43284)]
 
 > [!WARNING]
 > **Important notice if you previously used other rooting tools:**
