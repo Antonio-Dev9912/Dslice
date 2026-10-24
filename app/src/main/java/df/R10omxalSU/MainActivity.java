@@ -106,13 +106,7 @@ public class MainActivity extends Activity implements IReporter {
         suManagerPrefs = mDeCtx.getSharedPreferences(ExploitRunner.PREFS_NAME, Context.MODE_PRIVATE);
         switchLaunchRoot.setChecked(isRootActive());
 
-        PackageManager pm = getPackageManager();
-        for (ApplicationInfo ai : pm.getInstalledApplications(0)) {
-            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
-            if (!ExploitRunner.hasKsud(ai)) continue;
-            suManagers.add(new SuManagerEntry(ai.packageName, pm.getApplicationLabel(ai)));
-        }
-        suManagers.sort((a, b) -> a.label.toString().compareToIgnoreCase(b.label.toString()));
+        refreshSuManagers();
         suManagerSwitchListener = (button, checked) -> {
             if (isSuManagerLocked()) {
                 setSuManagerSwitchChecked(mSelectedSuManagerPackage != null);
@@ -161,11 +155,26 @@ public class MainActivity extends Activity implements IReporter {
         findViewById(R.id.copyLog).setOnClickListener(v -> copyLogToClipboard());
     }
 
+    private void refreshSuManagers() {
+        PackageManager pm = getPackageManager();
+        List<SuManagerEntry> entries = new ArrayList<>();
+        for (ApplicationInfo ai : pm.getInstalledApplications(0)) {
+            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+            if (!ExploitRunner.hasKsud(ai)) continue;
+            entries.add(new SuManagerEntry(ai.packageName, pm.getApplicationLabel(ai)));
+        }
+        entries.sort((a, b) -> a.label.toString().compareToIgnoreCase(b.label.toString()));
+        suManagers.clear();
+        suManagers.addAll(entries);
+    }
+
     private void activateOrChooseSuManager(List<SuManagerEntry> entries, SharedPreferences prefs) {
         if (isSuManagerLocked()) {
             updateRunButton();
             return;
         }
+        refreshSuManagers();
+        refreshSuManagerSelection();
         if (entries.isEmpty()) {
             Toast.makeText(this, "No compatible SU managers found", Toast.LENGTH_LONG).show();
             if (switchSuManager.isChecked()) setSuManagerSwitchChecked(false);
