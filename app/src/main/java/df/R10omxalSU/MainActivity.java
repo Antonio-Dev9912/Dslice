@@ -3,8 +3,6 @@ package df.R10omxalSU;
 import df.D10slice.R;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -27,9 +25,9 @@ import android.widget.Toast;
 
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -45,7 +43,6 @@ public class MainActivity extends Activity implements IReporter {
     private MaterialSwitch switchSuManager;
     private ScrollView outputScroll;
     private TextView outputView;
-    private TextView launchSubtitle;
     private MaterialSwitch switchBootStart;
     private MaterialSwitch switchSoftReboot;
     private MaterialSwitch switchDisableModules;
@@ -57,8 +54,6 @@ public class MainActivity extends Activity implements IReporter {
     private String mSelectedSuManagerPackage;
     private SharedPreferences suManagerPrefs;
     private boolean isLaunching;
-    private boolean launchFailed;
-    private String launchError;
     private CompoundButton.OnCheckedChangeListener suManagerSwitchListener;
     private CompoundButton.OnCheckedChangeListener launchRootSwitchListener;
     private PopupWindow suManagerPopup;
@@ -67,22 +62,9 @@ public class MainActivity extends Activity implements IReporter {
     public void report(String msg) {
         Log.i(TAG, msg.trim());
         mMain.post(() -> {
-            if (isFinishing() || isDestroyed()) return;
             outputView.append(msg);
             outputScroll.post(() -> outputScroll.fullScroll(View.FOCUS_DOWN));
         });
-    }
-
-    private void copyLogToClipboard() {
-        CharSequence log = outputView.getText();
-        if (log.length() == 0) {
-            Toast.makeText(this, "Log is empty", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard == null) return;
-        clipboard.setPrimaryClip(ClipData.newPlainText("Dslice log", log));
-        Toast.makeText(this, "Log copied", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -98,7 +80,6 @@ public class MainActivity extends Activity implements IReporter {
         switchSuManager = findViewById(R.id.switchSuManager);
         outputScroll = findViewById(R.id.outputScroll);
         outputView = findViewById(R.id.outputView);
-        launchSubtitle = findViewById(R.id.launchSubtitle);
         switchBootStart = findViewById(R.id.switchBootStart);
         switchSoftReboot = findViewById(R.id.switchSoftReboot);
         switchDisableModules = findViewById(R.id.switchDisableModules);
@@ -106,7 +87,13 @@ public class MainActivity extends Activity implements IReporter {
         suManagerPrefs = mDeCtx.getSharedPreferences(ExploitRunner.PREFS_NAME, Context.MODE_PRIVATE);
         switchLaunchRoot.setChecked(isRootActive());
 
-        refreshSuManagers();
+        PackageManager pm = getPackageManager();
+        for (ApplicationInfo ai : pm.getInstalledApplications(0)) {
+            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
+            if (!ExploitRunner.hasKsud(ai)) continue;
+            suManagers.add(new SuManagerEntry(ai.packageName, pm.getApplicationLabel(ai)));
+        }
+        suManagers.sort((a, b) -> a.label.toString().compareToIgnoreCase(b.label.toString()));
         suManagerSwitchListener = (button, checked) -> {
             if (isSuManagerLocked()) {
                 setSuManagerSwitchChecked(mSelectedSuManagerPackage != null);
@@ -137,12 +124,7 @@ public class MainActivity extends Activity implements IReporter {
             if (checked) {
                 if (isRootActive()) {
                     setLaunchRootSwitchChecked(true);
-                } else if (isLaunching) {
-                    setLaunchRootSwitchChecked(false);
-                } else if (hasIncompleteAttempt()) {
-                    setLaunchRootSwitchChecked(false);
-                    showRebootRequiredDialog();
-                } else if (mSelectedSuManagerPackage == null) {
+                } else if (isLaunching || mSelectedSuManagerPackage == null) {
                     setLaunchRootSwitchChecked(false);
                 } else {
                     launchRoot();
@@ -152,20 +134,6 @@ public class MainActivity extends Activity implements IReporter {
             }
         };
         switchLaunchRoot.setOnCheckedChangeListener(launchRootSwitchListener);
-        findViewById(R.id.copyLog).setOnClickListener(v -> copyLogToClipboard());
-    }
-
-    private void refreshSuManagers() {
-        PackageManager pm = getPackageManager();
-        List<SuManagerEntry> entries = new ArrayList<>();
-        for (ApplicationInfo ai : pm.getInstalledApplications(0)) {
-            if ((ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
-            if (!ExploitRunner.hasKsud(ai)) continue;
-            entries.add(new SuManagerEntry(ai.packageName, pm.getApplicationLabel(ai)));
-        }
-        entries.sort((a, b) -> a.label.toString().compareToIgnoreCase(b.label.toString()));
-        suManagers.clear();
-        suManagers.addAll(entries);
     }
 
     private void activateOrChooseSuManager(List<SuManagerEntry> entries, SharedPreferences prefs) {
@@ -173,8 +141,6 @@ public class MainActivity extends Activity implements IReporter {
             updateRunButton();
             return;
         }
-        refreshSuManagers();
-        refreshSuManagerSelection();
         if (entries.isEmpty()) {
             Toast.makeText(this, "No compatible SU managers found", Toast.LENGTH_LONG).show();
             if (switchSuManager.isChecked()) setSuManagerSwitchChecked(false);
@@ -257,7 +223,7 @@ public class MainActivity extends Activity implements IReporter {
         }
 
         suManagerRow.post(() -> {
-            if (!isFinishing() && !isDestroyed() && suManagerRow.isShown() && !isSuManagerLocked()) {
+            if (!isFinishing() && suManagerRow.isShown() && !isSuManagerLocked()) {
                 popup.showAsDropDown(suManagerRow);
             }
         });
@@ -374,33 +340,10 @@ public class MainActivity extends Activity implements IReporter {
         suManagerRow.setFocusable(!suManagerLocked);
         if (suManagerLocked && suManagerPopup != null) suManagerPopup.dismiss();
         switchLaunchRoot.setEnabled(true);
-        updateLaunchStatus();
-    }
-
-    private void updateLaunchStatus() {
-        if (isLaunching) {
-            launchSubtitle.setText("Launching root…");
-        } else if (isRootActive()) {
-            launchSubtitle.setText("Root active");
-        } else if (launchFailed || hasIncompleteAttempt()) {
-            String message = launchError;
-            if (message == null) {
-                message = hasIncompleteAttempt()
-                        ? ExploitRunner.failureStage() + " Reboot required."
-                        : "The exploit failed. Tap to retry.";
-            }
-            launchSubtitle.setText(message);
-        } else {
-            launchSubtitle.setText("Tap to launch manually");
-        }
     }
 
     private boolean isRootActive() {
-        return ExploitRunner.isRootActive();
-    }
-
-    private boolean hasIncompleteAttempt() {
-        return ExploitRunner.hasIncompleteAttempt();
+        return new File("/dev/df").exists();
     }
 
     private boolean isSuManagerLocked() {
@@ -409,8 +352,6 @@ public class MainActivity extends Activity implements IReporter {
 
     private void launchRoot() {
         if (isLaunching || isRootActive() || mSelectedSuManagerPackage == null) return;
-        launchFailed = false;
-        launchError = null;
         isLaunching = true;
         updateRunButton();
         outputView.setText("");
@@ -420,74 +361,21 @@ public class MainActivity extends Activity implements IReporter {
     private void runExploit() {
         try {
             int rc = ExploitRunner.run(mDeCtx, this);
-            if (rc == ExploitRunner.RESULT_OK) {
-                mMain.post(() -> {
-                    launchFailed = false;
-                    launchError = null;
-                    updateRunButton();
-                });
-                return;
-            }
-
-            String reason = describeFailure(rc);
-            reason += hasIncompleteAttempt()
-                    ? " Reboot required before retrying."
-                    : " Tap to retry.";
-            String finalReason = reason;
-            report("\nDslice: " + reason + "\n");
-            mMain.post(() -> {
-                if (isFinishing() || isDestroyed()) return;
-                launchFailed = true;
-                launchError = finalReason;
-                updateRunButton();
-            });
+            String msg = rc == 0 ? "Dslice: SUCCESS"
+                       : rc == 1 ? "Dslice: Error - ksud nonzero exit"
+                       : rc == 2 ? "Dslice: Error - check logcat & dmesg"
+                       : "Dslice: Error - failed to patch files";
+            mMain.post(() -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show());
         } catch (Exception e) {
             Log.e(TAG, "exploit exception", e);
             report("\nexception: " + e + "\n");
-            mMain.post(() -> {
-                if (isFinishing() || isDestroyed()) return;
-                launchFailed = true;
-                launchError = "Unexpected error. Tap to retry.";
-                updateRunButton();
-            });
         } finally {
             mMain.post(() -> {
-                if (isFinishing() || isDestroyed()) return;
                 isLaunching = false;
                 setLaunchRootSwitchChecked(isRootActive());
                 updateRunButton();
             });
         }
-    }
-
-    private String describeFailure(int rc) {
-        String stage = ExploitRunner.failureStage();
-        switch (rc) {
-            case ExploitRunner.RESULT_KSUD_ERROR:
-            case ExploitRunner.RESULT_TIMEOUT:
-            case ExploitRunner.RESULT_INCOMPLETE:
-                return "Root is active.".equals(stage) ? "The exploit timed out." : stage;
-            case ExploitRunner.RESULT_PATCH_FAILED:
-                return "Could not patch the required files.";
-            case ExploitRunner.RESULT_NO_MANAGER:
-                return "Select an SU Manager first.";
-            case ExploitRunner.RESULT_MANAGER_UNAVAILABLE:
-                return "The selected SU Manager is unavailable.";
-            default:
-                return "Root is active.".equals(stage)
-                        ? "The exploit failed (code " + rc + ")."
-                        : stage;
-        }
-    }
-
-    private void showRebootRequiredDialog() {
-        String stage = ExploitRunner.failureStage();
-        String detail = "Root is active.".equals(stage) ? "" : stage + "\n\n";
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Reboot required")
-                .setMessage(detail + "Reboot the device to clear the partial hook before trying again.")
-                .setPositiveButton("OK", null)
-                .show();
     }
 
     private void setLaunchRootSwitchChecked(boolean checked) {
