@@ -3,6 +3,8 @@ package df.R10omxalSU;
 import df.D10slice.R;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -69,6 +71,18 @@ public class MainActivity extends Activity implements IReporter {
             outputView.append(msg);
             outputScroll.post(() -> outputScroll.fullScroll(View.FOCUS_DOWN));
         });
+    }
+
+    private void copyLogToClipboard() {
+        CharSequence log = outputView.getText();
+        if (log.length() == 0) {
+            Toast.makeText(this, "Log is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null) return;
+        clipboard.setPrimaryClip(ClipData.newPlainText("Dslice log", log));
+        Toast.makeText(this, "Log copied", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -144,6 +158,7 @@ public class MainActivity extends Activity implements IReporter {
             }
         };
         switchLaunchRoot.setOnCheckedChangeListener(launchRootSwitchListener);
+        findViewById(R.id.copyLog).setOnClickListener(v -> copyLogToClipboard());
     }
 
     private void activateOrChooseSuManager(List<SuManagerEntry> entries, SharedPreferences prefs) {
@@ -358,10 +373,14 @@ public class MainActivity extends Activity implements IReporter {
             launchSubtitle.setText("Launching root…");
         } else if (isRootActive()) {
             launchSubtitle.setText("Root active");
-        } else if (launchFailed) {
-            launchSubtitle.setText(launchError != null
-                    ? launchError
-                    : "The exploit failed. Tap to retry.");
+        } else if (launchFailed || hasIncompleteAttempt()) {
+            String message = launchError;
+            if (message == null) {
+                message = hasIncompleteAttempt()
+                        ? ExploitRunner.failureStage() + " Reboot required."
+                        : "The exploit failed. Tap to retry.";
+            }
+            launchSubtitle.setText(message);
         } else {
             launchSubtitle.setText("Tap to launch manually");
         }
@@ -433,29 +452,31 @@ public class MainActivity extends Activity implements IReporter {
     }
 
     private String describeFailure(int rc) {
+        String stage = ExploitRunner.failureStage();
         switch (rc) {
             case ExploitRunner.RESULT_KSUD_ERROR:
-                return "KernelSU failed to start.";
             case ExploitRunner.RESULT_TIMEOUT:
-                return "Timed out while starting KernelSU.";
+            case ExploitRunner.RESULT_INCOMPLETE:
+                return "Root is active.".equals(stage) ? "The exploit timed out." : stage;
             case ExploitRunner.RESULT_PATCH_FAILED:
                 return "Could not patch the required files.";
-            case ExploitRunner.RESULT_INCOMPLETE:
-                return "A previous attempt did not finish.";
             case ExploitRunner.RESULT_NO_MANAGER:
                 return "Select an SU Manager first.";
             case ExploitRunner.RESULT_MANAGER_UNAVAILABLE:
                 return "The selected SU Manager is unavailable.";
             default:
-                return "The exploit failed (code " + rc + ").";
+                return "Root is active.".equals(stage)
+                        ? "The exploit failed (code " + rc + ")."
+                        : stage;
         }
     }
 
     private void showRebootRequiredDialog() {
+        String stage = ExploitRunner.failureStage();
+        String detail = "Root is active.".equals(stage) ? "" : stage + "\n\n";
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Reboot required")
-                .setMessage("The previous attempt did not finish loading KernelSU. "
-                        + "Reboot the device to clear the partial hook before trying again.")
+                .setMessage(detail + "Reboot the device to clear the partial hook before trying again.")
                 .setPositiveButton("OK", null)
                 .show();
     }
