@@ -42,6 +42,11 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/out
           cp dfroot.ko $GITHUB_WORKSPACE/out/dfroot-${{ matrix.kmi }}.ko
           make clean
+      - name: Rename APK to Dslice_6.1.apk
+        run: |
+          mkdir -p app/build/outputs/apk/release
+          find app/build/outputs/apk -type f -name "*.apk" -exec cp -f {} app/build/outputs/apk/release/Dslice_6.1.apk \;
+
 
       - name: Upload dfroot.ko
         uses: actions/upload-artifact@v7
@@ -99,11 +104,11 @@ jobs:
         with:
           name: DFRoot
           path: |
-            app/build/outputs/apk/release/DFRoot_*.apk
-            app/build/outputs/apk/debug/DFRoot_*.apk
+            app/build/outputs/apk/release/Dslice_6.1.apk
+            
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/release/DFRoot_*.apk
+          files: app/build/outputs/apk/release/Dslice_6.1.apk
