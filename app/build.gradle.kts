@@ -4,28 +4,15 @@ plugins {
     id("com.android.application")
 }
 
-fun Properties.hasSigningValues(): Boolean = listOf(
+val signingProps = Properties()
+val signingPropsFile = rootProject.file("signing.properties")
+if (signingPropsFile.exists()) signingProps.load(signingPropsFile.inputStream())
+val releaseSigningConfigured = listOf(
     "KEYSTORE_FILE",
     "KEYSTORE_PASSWORD",
     "KEY_ALIAS",
     "KEY_PASSWORD",
-).all { !getProperty(it).isNullOrBlank() }
-
-val signingProps = Properties()
-val signingPropsFile = rootProject.file("signing.properties")
-if (signingPropsFile.exists()) signingProps.load(signingPropsFile.inputStream())
-val localReleaseSigningConfigured = signingProps.hasSigningValues()
-
-val ciSigningProps = Properties()
-val ciSigningPropsFile = rootProject.file("ci/ci-signing.properties")
-if (ciSigningPropsFile.exists()) ciSigningProps.load(ciSigningPropsFile.inputStream())
-val ciSigningConfigured = ciSigningProps.hasSigningValues()
-
-val releaseSigningProps = when {
-    localReleaseSigningConfigured -> signingProps
-    ciSigningConfigured -> ciSigningProps
-    else -> null
-}
+).all { !signingProps.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "df.D10slice"
@@ -48,16 +35,12 @@ android {
     }
 
     signingConfigs {
-        releaseSigningProps?.let { props ->
+        if (releaseSigningConfigured) {
             create("release") {
-                storeFile = if (localReleaseSigningConfigured) {
-                    file(props.getProperty("KEYSTORE_FILE"))
-                } else {
-                    rootProject.file(props.getProperty("KEYSTORE_FILE"))
-                }
-                storePassword = props.getProperty("KEYSTORE_PASSWORD")
-                keyAlias = props.getProperty("KEY_ALIAS")
-                keyPassword = props.getProperty("KEY_PASSWORD")
+                storeFile = file(signingProps.getProperty("KEYSTORE_FILE"))
+                storePassword = signingProps.getProperty("KEYSTORE_PASSWORD")
+                keyAlias = signingProps.getProperty("KEY_ALIAS")
+                keyPassword = signingProps.getProperty("KEY_PASSWORD")
             }
         }
     }
@@ -68,7 +51,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
-            releaseSigningProps?.let {
+            if (releaseSigningConfigured) {
                 signingConfig = signingConfigs.getByName("release")
             }
             isMinifyEnabled = true

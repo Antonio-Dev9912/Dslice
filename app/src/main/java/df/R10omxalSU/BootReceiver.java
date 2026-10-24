@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.PowerManager;
 import android.util.Log;
 
+import java.io.File;
+
 public class BootReceiver extends BroadcastReceiver implements IReporter {
     private static final String TAG = "dfroot";
 
@@ -16,12 +18,8 @@ public class BootReceiver extends BroadcastReceiver implements IReporter {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (ExploitRunner.isRootActive()) {
+        if (new File("/dev/df").exists()) {
             Log.i(TAG, "boot: already hooked, skipping");
-            return;
-        }
-        if (ExploitRunner.hasIncompleteAttempt()) {
-            Log.w(TAG, "boot: previous attempt did not finish; reboot required");
             return;
         }
         Log.i(TAG, "boot: " + intent.getAction());
