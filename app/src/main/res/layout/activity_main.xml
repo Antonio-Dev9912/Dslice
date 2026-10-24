@@ -103,13 +103,14 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/launchSubtitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Tap to launch manually"
                         android:textColor="@color/app_secondary_foreground"
                         android:textSize="14sp"
-                        android:singleLine="true"
+                        android:maxLines="3"
                         android:ellipsize="end" />
                 </LinearLayout>
 
